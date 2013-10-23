@@ -1,0 +1,4 @@
+idb.proxy
+=========
+
+Unlimited IndexedDB
