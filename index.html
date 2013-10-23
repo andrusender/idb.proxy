@@ -1,0 +1,102 @@
+<script type="text/javascript" src="js/exdb.js"></script>
+        <button onclick="getQuota()">Get</button>
+<script type="text/javascript">
+    function getQuota(){
+        db.getUsageAndQuota(function(r){
+            console.log("used", r.usage);
+            console.log("quota", r.quota);
+        });
+    }
+    var db = new exDB();
+    db.open({
+        server: 'my-app',
+        version: 6,
+        schema: {
+            people3: {
+                key: { keyPath: 'id', autoIncrement: true },
+                // Optionally add indexes
+                indexes: {
+                    firstName: { },
+                    "client.email": { unique: true },
+                    answer: { unique: true }
+                }
+            }
+        }
+    }, function () {
+
+        // u can use one of variants db.table('NAME').* === db.NAME.*
+        /*
+         var peoples = [
+         {  firstName: 'Aaron', lastName: 'Powell', answer: 42},
+         {  firstName: 'Aaron1', lastName: 'Powell1', answer: 142},
+         {  firstName: 'Aaron2', lastName: 'Powell2', answer: 242},
+         {  firstName: 'Aaron3', lastName: 'Powell3', answer: 342},
+         {  firstName: 'Aaron4', lastName: 'Powell4', answer: 442},
+         {  firstName: 'Aaron5', lastName: 'Powell5', answer: 542},
+         {  firstName: 'Aaron6', lastName: 'Powell6', answer: 642},
+         {  firstName: 'Aaron7', lastName: 'Powell7', answer: 742}
+
+         ];
+         for(var i=0;i<peoples.length;i++){
+         db.people.add(peoples[i],function(r){
+         console.log(r);
+         });
+         }*/
+
+        //db.table("people3").query("client.email").all().desc().execute(function (r) { console.log("all", r); });
+        //db.people.remove(10,function(){});
+        //db.table("people3").add({  firstName: 'Aaron', lastName: 'Powell', answer: 14288997, client: {cid: 1, email: "1a2ndru.sender@gmail.com"}}, function (r) {console.log(r);});
+        /*db.table("people3").get(1,function(r){
+            console.log(r);
+        });*/
+        /*
+         //ADD
+         db.table("people").add({  firstName: 'Aaron', lastName: 'Powell', answer: 142},function(r){
+         console.log(r);
+         });
+         db.table("people").add({  firstName: 'Andru', lastName: 'Sender', answer: 25},function(r){
+         console.log(r);
+         });
+         //REMOVE
+         db.table("people").remove(2,function(key){
+         console.log(key);
+         });
+         //UPDATE
+         db.table("people").update({ id:3, firstName: 'Aaron', lastName: 'Powell', answer: 1242}, function (r) {
+         console.log(r);
+         });*/
+
+        //FILTERS: all only bound upperBound lowerBound filter
+        //HELPERS: keys distinct desc count
+        /*
+         db.people.query("firstName").only("Aaron2").execute(function(r){
+         console.log("GETTER",r);
+         });
+
+         db.table("people3").query("answer").all().desc().execute(function(r){
+         console.log("all",r);
+         });
+
+         db.table("people").query("answer").only(12642).count().execute(function(r){
+         console.log("only",r);
+         });
+         db.table("people").query("answer").bound(20,45).execute(function(r){
+         console.log("bound",r);
+         });
+         db.table("people").query("answer").lowerBound(50).keys().execute(function(r){
+         console.log("lowerBound",r);
+         });
+         db.table("people").query("answer").upperBound(43).execute(function(r){
+         console.log("upperBound",r);
+         });
+
+         db.table("people").query("answer").filter("return item.answer==42 && item.firstName=='Aaron'").execute(function(r){
+         console.log("filter",r);
+         });
+
+         db.close(function(){
+         console.log("closed");
+         });
+         */
+    });
+</script>
