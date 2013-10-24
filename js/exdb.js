@@ -1,32 +1,54 @@
 (function (window, undefined) {
     "use strict";
-    function exDB() {
+
+    //Queue Class
+    var Queue = function () {
+        var self = this;
+        this.list = new Array();
+        this.busy = false;
+        this.interval = 10;
+
+        self.add = function (fn) {
+            self.list.push(fn);
+            return self;
+        };
+        self.done = function () {
+            self.busy = false;
+        };
+        self.run = function () {
+            if (!self.busy) {
+                self.busy = true;
+                var fn = self.list.shift();
+                fn();
+            } else {
+                setTimeout(self.run, self.interval);
+            }
+            return self;
+        };
+
+    };
+
+    //Bridge Class
+    var exDB = function () {
         var self = this;
         this.extensionId = arguments[0] || "eojllnbjkomphhmpcpafaipblnembfem";
         this.filterList = new Array();
-        this.queueList = new Array();
-        this.queue_busy = false;
+        this.queue = new Queue();
         this._table;
         this._query;
         self.sendMessage = function sendMessage(data, callback) {
-            this.queueList.push([data, callback]);
-            self.runQueue();
-            //chrome.runtime.sendMessage(self.extensionId, data, callback);
-        };
-
-        self.runQueue = function () {
-            if (!self.queue_busy) {
-                self.queue_busy = true;
-                var tmp = self.queueList.shift();
-                chrome.runtime.sendMessage(self.extensionId, tmp[0], function (r) {
-                    tmp[1](r);
-                    self.queue_busy = false;
+            var fn = function () {
+                chrome.runtime.sendMessage(self.extensionId, data, function (result) {
+                    if (result && result.RUNTIME_ERROR) {
+                        console.error(result.RUNTIME_ERROR.message);
+                        result = null;
+                    }
+                    callback(result);
+                    self.queue.done();
                 });
-            } else {
-                setTimeout(function () {
-                    self.runQueue();
-                }, 10);
-            }
+            };
+            self.queue.add(fn);
+            self.queue.run();
         };
 
         self.open = function (params, callback) {
@@ -59,13 +81,7 @@
         };
 
         self.execute = function (callback) {
-            self.sendMessage({"cmd": "execute", "table": self._table, "query": self._query, "filters": self.filterList}, function (result) {
-                if (result && result.RUNTIME_ERROR) {
-                    console.error(result.RUNTIME_ERROR.message);
-                    result = null;
-                }
-                callback(result);
-            });
+            self.sendMessage({"cmd": "execute", "table": self._table, "query": self._query, "filters": self.filterList}, callback);
             self._query = null;
             self.filterList = [];
         };
@@ -76,13 +92,7 @@
 
         "add update remove get".split(" ").forEach(function (fn) {
             self[fn] = function (item, callback) {
-                self.sendMessage({"cmd": fn, "table": self._table, "params": item}, function (result) {
-                    if (result && result.RUNTIME_ERROR) {
-                        console.error(result.RUNTIME_ERROR.message);
-                        result = null;
-                    }
-                    callback(result);
-                });
+                self.sendMessage({"cmd": fn, "table": self._table, "params": item}, callback);
                 return self;
             }
         });
