@@ -1,5 +1,4 @@
 <script type="text/javascript" src="js/exdb.js"></script>
-        <button onclick="getQuota()">Get</button>
 <script type="text/javascript">
     function getQuota(){
         db.getUsageAndQuota(function(r){
@@ -23,6 +22,8 @@
             }
         }
     }, function () {
+        getQuota();
+
 
         // u can use one of variants db.table('NAME').* === db.NAME.*
         /*

@@ -4,21 +4,40 @@
         var self = this;
         this.extensionId = arguments[0] || "eojllnbjkomphhmpcpafaipblnembfem";
         this.filterList = new Array();
+        this.queueList = new Array();
+        this.queue_busy = false;
         this._table;
         this._query;
         self.sendMessage = function sendMessage(data, callback) {
-            chrome.runtime.sendMessage(self.extensionId, data, callback);
+            this.queueList.push([data, callback]);
+            self.runQueue();
+            //chrome.runtime.sendMessage(self.extensionId, data, callback);
+        };
+
+        self.runQueue = function () {
+            if (!self.queue_busy) {
+                self.queue_busy = true;
+                var tmp = self.queueList.shift();
+                chrome.runtime.sendMessage(self.extensionId, tmp[0], function (r) {
+                    tmp[1](r);
+                    self.queue_busy = false;
+                });
+            } else {
+                setTimeout(function () {
+                    self.runQueue();
+                }, 10);
+            }
         };
 
         self.open = function (params, callback) {
-            self.sendMessage({"cmd": "open", "params": params}, function(r){
+            self.sendMessage({"cmd": "open", "params": params}, function (r) {
                 var tn;
-                for(var i=0;i< r.length;i++)
+                for (var i = 0; i < r.length; i++)
                     tn = r[i];
-                    self.__defineGetter__(tn,function(){
-                        self._table = tn;
-                        return this;
-                    });
+                self.__defineGetter__(tn, function () {
+                    self._table = tn;
+                    return this;
+                });
                 callback();
             });
             return self;
@@ -51,8 +70,8 @@
             self.filterList = [];
         };
 
-        self.getUsageAndQuota = function(callback){
-            self.sendMessage({"cmd": "getUsageAndQuota"},callback);
+        self.getUsageAndQuota = function (callback) {
+            self.sendMessage({"cmd": "getUsageAndQuota"}, callback);
         }
 
         "add update remove get".split(" ").forEach(function (fn) {
